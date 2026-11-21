@@ -3,17 +3,32 @@ using CatalogoMaui.ViewModels;
 namespace CatalogoMaui;
 
 public partial class MainPage : ContentPage
-
 {
+	private readonly CatalogoViewModel vm = new();
 	public MainPage()
 	{
 		InitializeComponent();
 		// Conecta la pantalla con la lista del ViewModel.
-		BindingContext = new CatalogoViewModel();
-
-
+		BindingContext = vm;
 	}
-
+	// Se vuelve a consultar SQLite al regresar del formulario.
+	protected override async void OnAppearing()
+	{
+		base.OnAppearing();
+		try { await vm.CargarAsync(); }
+		catch (Exception ex)
+		{
+			await DisplayAlert("No se cargó el catálogo",
+			$"Revisa el almacenamiento disponible del dispositivo. {ex.Message}", "Aceptar");
+		}
+	}
+	private async void AlAgregarProducto(object? sender, EventArgs e)
+	{
+		if (abriendoDetalle) return;
+		abriendoDetalle = true;
+		try { await Shell.Current.GoToAsync("producto-detalle"); }
+		finally { abriendoDetalle = false; }
+	}
 	private bool abriendoDetalle;
 	private async void AlSeleccionarProducto(object? sender,
 	SelectionChangedEventArgs e)
@@ -31,7 +46,7 @@ public partial class MainPage : ContentPage
 			// Enviamos el objeto completo, no solo su nombre.
 			var datos = new ShellNavigationQueryParameters
 {
-{		"producto", producto }
+{ "producto", producto }
 };
 			await Shell.Current.GoToAsync("producto-detalle", datos);
 		}
